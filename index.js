@@ -1,4 +1,13 @@
 const mqtt = require("mqtt")
+
+if (!process.env.MQTT_ENDPOINT) {
+  console.log('Did you forget to set the MQTT_ENDPOINT?')
+  process.exit(1)
+}
+if (!process.env.SENSOR_BUG_PASSWORD) {
+  console.log('Did you forget to set the SENSOR_BUG_PASSWORD?')
+  process.exit(1)
+}
 const mqttClient = mqtt.connect(process.env.MQTT_ENDPOINT, {
   clientId: 'sensors/ble/collector',
   username: 'sensorBug',
@@ -148,3 +157,10 @@ process.on('SIGTERM', function () {
   console.log('Caught interrupt signal');
   noble.stopScanning(() => process.exit());
 });
+
+mqttClient.publish(`sensors/blebug/cjr-laptop/connect`, JSON.stringify({start: true}), (error, packet) => {
+  console.log("start")
+  if (error) {
+    console.log(error)
+  }
+})
