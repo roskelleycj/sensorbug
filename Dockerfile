@@ -1,2 +1,4 @@
 FROM node:20.5.1-bookworm-slim AS build
-RUN ls
+COPY package.json app/package.json
+COPY index.js app/index.js
+RUN ls app
