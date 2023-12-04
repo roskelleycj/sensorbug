@@ -128,8 +128,8 @@ noble.on('discover', async (peripheral) => {
       else {
         log(`  Template ID Byte or encrypted does not match '3c' found '${templateIdByte}' and encrypted '${encrypted}'`)
       }
-      // We get immediate duplicates if we don't cause a little bit of a pause.
-      await new Promise(r => setTimeout(r, 2000));
+      // Waiting 5m before getting next set of stats.  E.g., what good does 1s stats do?
+      await new Promise(r => setTimeout(r, 300000));
     }
     else {
       log(`Skipping as it is not a BlueSense device.`)
