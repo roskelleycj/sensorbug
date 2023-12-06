@@ -101,15 +101,25 @@ noble.on('discover', async (peripheral) => {
               const temperatureF = (temperatureC * 9/5) + 32
 
               log(`  Temperature C '${temperatureC}' F '${temperatureF}'` )
-              const tempData = {
-                tF: temperatureF,
-                tC: temperatureC,
-                bL: batteryLevel
+              const temperatureData = {
+                fahrenheit: temperatureF,
+                celsius: temperatureC,
+              }
+              const batteryData = {
+                power_level: batteryLevel,
+                battery_included: true
               }
               if (mqttClient.connected) {
-                console.log(`emitting event: ${JSON.stringify(tempData)}`)
+                let temperatureJson = JSON.stringify(temperatureData);
+                let batteryJson = JSON.stringify(batteryData);
+                console.log(`${new Date().toISOString()}: emitting event: [${temperatureJson}, ${batteryJson}]`)
                 const sensorName = mapLocalNameToSensorName(localName)
-                mqttClient.publish(`sensors/blebug/ht/${sensorName}/status`, JSON.stringify(tempData), (error, packet) => {
+                mqttClient.publish(`sensors/temperature/blebug/out/${sensorName}/${localName}`, temperatureJson, (error, packet) => {
+                  if (error) {
+                    log(error)
+                  }
+                })
+                mqttClient.publish(`sensors/battery/blebug/out/${sensorName}/${localName}`, batteryJson, (error, packet) => {
                   if (error) {
                     log(error)
                   }
@@ -128,8 +138,8 @@ noble.on('discover', async (peripheral) => {
       else {
         log(`  Template ID Byte or encrypted does not match '3c' found '${templateIdByte}' and encrypted '${encrypted}'`)
       }
-      // Waiting 5m before getting next set of stats.  E.g., what good does 1s stats do?
-      await new Promise(r => setTimeout(r, 300000));
+      // Waiting 2.5m before getting next set of stats.  E.g., what good does 1s stats do?
+      await new Promise(r => setTimeout(r, 150000));
     }
     else {
       log(`Skipping as it is not a BlueSense device.`)
@@ -158,7 +168,7 @@ process.on('SIGTERM', function () {
   noble.stopScanning(() => process.exit());
 });
 
-mqttClient.publish(`sensors/blebug/cjr-laptop/connect`, JSON.stringify({start: true}), (error, packet) => {
+mqttClient.publish(`sensors/gateway/mac/in/office-1/cjr-laptop`, JSON.stringify({start: true}), (error, packet) => {
   console.log("start")
   if (error) {
     console.log(error)
