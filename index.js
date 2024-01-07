@@ -9,7 +9,7 @@ if (!process.env.SENSOR_BUG_PASSWORD) {
   process.exit(1)
 }
 const mqttClient = mqtt.connect(process.env.MQTT_ENDPOINT, {
-  clientId: 'sensors/ble/collector',
+  clientId: 'sensors/mac/in/office-1/cjr-laptop',
   username: 'sensorBug',
   password: process.env.SENSOR_BUG_PASSWORD
 });
@@ -66,7 +66,7 @@ noble.on('discover', async (peripheral) => {
     const majorPid = data[2].toString(16).padStart(2, '0')
     const minorPid = data[3].toString(16).padStart(2, '0')
     if (blueRadiosCid === '0085' && majorPid === '02' && minorPid === '00') {
-      log(`  Manufacturer Data = ${manufacturerData.toString('hex')}`);
+      console.log(`${new Date().toISOString()}: Manufacturer Data = ${manufacturerData.toString('hex')}`);
 
       const templateIdByte = data[4].toString(16).padStart(2, '0')
       const encrypted = data[4] >> 7 === 1
@@ -114,12 +114,12 @@ noble.on('discover', async (peripheral) => {
                 let batteryJson = JSON.stringify(batteryData);
                 console.log(`${new Date().toISOString()}: emitting event: [${temperatureJson}, ${batteryJson}]`)
                 const sensorName = mapLocalNameToSensorName(localName)
-                mqttClient.publish(`sensors/temperature/blebug/out/${sensorName}/${localName}`, temperatureJson, (error, packet) => {
+                mqttClient.publish(`sensors/blebug/out/${sensorName}/${localName}/temperature`, temperatureJson, (error, packet) => {
                   if (error) {
                     log(error)
                   }
                 })
-                mqttClient.publish(`sensors/battery/blebug/out/${sensorName}/${localName}`, batteryJson, (error, packet) => {
+                mqttClient.publish(`sensors/blebug/out/${sensorName}/${localName}/battery`, batteryJson, (error, packet) => {
                   if (error) {
                     log(error)
                   }
@@ -168,7 +168,7 @@ process.on('SIGTERM', function () {
   noble.stopScanning(() => process.exit());
 });
 
-mqttClient.publish(`sensors/gateway/mac/in/office-1/cjr-laptop`, JSON.stringify({start: true}), (error, packet) => {
+mqttClient.publish(`sensors/mac/in/office-1/cjr-laptop/connect`, JSON.stringify({start: true}), (error, packet) => {
   console.log("start")
   if (error) {
     console.log(error)

@@ -10,6 +10,10 @@ Issues include:
 * There are no more sensorbugs to buy!!!!  :-( 
 * Running on my own box and not on the rpi, due to lots of posts about linux being difficult to get setup for bluetooth.
 
+Keep forgetting how to spin it up.
+```shell
+export MQTT_ENDPOINT="mqtt://192.168.1.246:1883"; export SENSOR_BUG_PASSWORD=<password>; node index.js
+```
 
 [1]:  https://github.com/IanHarvey/bluepy/issues/381
 [2]:  https://www.blueradios.com/hardware_sensors.htm
