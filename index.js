@@ -30,15 +30,6 @@ function log(msg) {
   }
 }
 
-// This stinks about the sensorbug, you can't name it, so you have to map it.
-const sensorNames = {
-  SensorBug109136: "front-porch-1"
-}
-
-function mapLocalNameToSensorName(localName) {
-  return sensorNames[localName];
-}
-
 noble.on('discover', async (peripheral) => {
   await noble.stopScanningAsync();
 
@@ -66,6 +57,7 @@ noble.on('discover', async (peripheral) => {
     const majorPid = data[2].toString(16).padStart(2, '0')
     const minorPid = data[3].toString(16).padStart(2, '0')
     if (blueRadiosCid === '0085' && majorPid === '02' && minorPid === '00') {
+      console.log(`Found: ${JSON.stringify(peripheral.advertisement)}`);
       console.log(`${new Date().toISOString()}: Manufacturer Data = ${manufacturerData.toString('hex')}`);
 
       const templateIdByte = data[4].toString(16).padStart(2, '0')
@@ -113,13 +105,12 @@ noble.on('discover', async (peripheral) => {
                 let temperatureJson = JSON.stringify(temperatureData);
                 let batteryJson = JSON.stringify(batteryData);
                 console.log(`${new Date().toISOString()}: emitting event: [${temperatureJson}, ${batteryJson}]`)
-                const sensorName = mapLocalNameToSensorName(localName)
-                mqttClient.publish(`sensors/blebug/out/${sensorName}/${localName}/temperature`, temperatureJson, (error, packet) => {
+                mqttClient.publish(`sensors/blebug/out/front-porch-1/SensorBug109136/temperature`, temperatureJson, (error, packet) => {
                   if (error) {
                     log(error)
                   }
                 })
-                mqttClient.publish(`sensors/blebug/out/${sensorName}/${localName}/battery`, batteryJson, (error, packet) => {
+                mqttClient.publish(`sensors/blebug/out/front-porch-1/SensorBug109136/battery`, batteryJson, (error, packet) => {
                   if (error) {
                     log(error)
                   }
@@ -138,8 +129,8 @@ noble.on('discover', async (peripheral) => {
       else {
         log(`  Template ID Byte or encrypted does not match '3c' found '${templateIdByte}' and encrypted '${encrypted}'`)
       }
-      // Waiting 2.5m before getting next set of stats.  E.g., what good does 1s stats do?
-      await new Promise(r => setTimeout(r, 150000));
+      // Waiting 1m before getting next set of stats.  E.g., what good does 1s stats do?
+      await new Promise(r => setTimeout(r, 60000));
     }
     else {
       log(`Skipping as it is not a BlueSense device.`)
